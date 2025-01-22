@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rota</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-btn {
+            border: none;
+            background: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .rota-list {
+            padding: 10px;
+        }
+
+        .day-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .day-item:last-child {
+            border-bottom: none;
+        }
+
+        .date {
+            font-weight: 500;
+        }
+
+        .person {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .person.kahilu { background: #e3f2fd; color: #1565c0; }
+        .person.daniel { background: #f3e5f5; color: #7b1fa2; }
+        .person.siwo { background: #fff3e0; color: #ef6c00; }
+
+        .today {
+            background: #fafafa;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 0;
+            }
+
+            .container {
+                border-radius: 0;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button id="prevBtn" class="nav-btn">←</button>
+            <span id="currentWeek"></span>
+            <button id="nextBtn" class="nav-btn">→</button>
+        </div>
+        <div id="rotaList" class="rota-list"></div>
+    </div>
+
+    <script>
+        const people = ['kahilu', 'daniel', 'siwo'];
+        const startDate = new Date('2025-01-23');
+        const endDate = new Date('2025-03-31');
+        let currentDate = new Date('2025-01-23');
+
+        function formatDate(date) {
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+        }
+
+        function getPersonForDate(date) {
+            const daysDiff = Math.floor((date - startDate) / (1000 * 60 * 60 * 24));
+            return people[daysDiff % people.length];
+        }
+
+        function isToday(date) {
+            const today = new Date();
+            return date.getDate() === today.getDate() && 
+                   date.getMonth() === today.getMonth() && 
+                   date.getFullYear() === today.getFullYear();
+        }
+
+        function updateWeek() {
+            const rotaList = document.getElementById('rotaList');
+            rotaList.innerHTML = '';
+
+            // Update week display
+            const weekEnd = new Date(currentDate);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            document.getElementById('currentWeek').textContent = 
+                `${formatDate(currentDate)} - ${formatDate(weekEnd)}`;
+
+            // Generate days
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(currentDate);
+                date.setDate(date.getDate() + i);
+                
+                const dayElement = document.createElement('div');
+                dayElement.className = `day-item ${isToday(date) ? 'today' : ''}`;
+                
+                const person = getPersonForDate(date);
+                dayElement.innerHTML = `
+                    <span class="date">${formatDate(date)}</span>
+                    <span class="person ${person}">${person}</span>
+                `;
+                
+                rotaList.appendChild(dayElement);
+            }
+
+            // Update navigation buttons
+            document.getElementById('prevBtn').disabled = currentDate <= startDate;
+            document.getElementById('nextBtn').disabled = 
+                new Date(currentDate).setDate(currentDate.getDate() + 7) > endDate;
+        }
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            const newDate = new Date(currentDate);
+            newDate.setDate(newDate.getDate() - 7);
+            if (newDate >= startDate) {
+                currentDate = newDate;
+                updateWeek();
+            }
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            const newDate = new Date(currentDate);
+            newDate.setDate(newDate.getDate() + 7);
+            if (newDate <= endDate) {
+                currentDate = newDate;
+                updateWeek();
+            }
+        });
+
+        // Initial render
+        updateWeek();
+    </script>
+</body>
+</html>
